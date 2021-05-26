@@ -1,0 +1,106 @@
+<html>
+    <head>
+    </head>
+    <body>
+        <script type="application/javascript">
+            const title=document.createElement('title');
+            const listaDeMensajes=document.createElement('ul');
+            const css=document.createElement('style');
+            const input=document.createElement('input');
+            const button=document.createElement('button');
+            let largolista=0;
+
+            title.innerHTML='Chat Web :)';
+            button.innerHTML='send';
+
+            document.body.style='background:#535353;font-family:sans-serif;padding-bottom:50px';
+            listaDeMensajes.style='list-style:none;color:white;';
+            input.style='position:fixed;bottom:20px;left:20px;height:50px;border-radius:25px 0 0 25px;width:700px;font-size:20px;padding-left:20px';
+            button.style='position:fixed;bottom:20px;left:720px;height:50px;border-radius:0 25px 25px 0;width:100px;font-weight:bold;background:#3daa2d;font-size:20px';
+
+            document.head.append(title);
+            document.head.append(css);
+            document.body.append(listaDeMensajes);
+            document.body.append(input);
+            document.body.append(button);
+            
+            function actualizar(){
+                const scroll=document.body.scrollTop;
+                fetch('http://ubeje.xyz:3000/messages').then((r)=>{
+                    return r.json();
+                }).then((j)=>{
+                    if(j.length>largolista){
+                        listaDeMensajes.innerHTML='';
+                        largolista=j.length;
+                        j.forEach(element => {
+                            const unMensaje=document.createElement('li');
+                            const h1 = document.createElement('h1');
+                            const h2 = document.createElement('h2');
+                            const date=document.createElement('span');
+                            const linea=document.createElement('br');
+
+                            date.append(element.date);
+                            date.style='font-size:20px;color:rgb(145, 145, 145);padding-left:15px';
+                            h1.append(element.sender);
+                            h1.append(date);
+                            h1.style.color='#bce0ff';
+                            if (typeof(element.message)!=='undefined' && element.message.match(/\.(jpeg|jpg|gif|png|svg)$/)!=null){
+                                const imagen=document.createElement('img');
+                                imagen.setAttribute('src',element.message);
+                                imagen.style.maxWidth='25%';
+                                h2.append(imagen);
+                            }else{
+                                h2.append(element.message);
+                            }
+
+                            unMensaje.append(h1);
+                            unMensaje.append(h2);
+                            unMensaje.append(linea);
+
+                            listaDeMensajes.append(unMensaje);
+                        });
+                        document.body.scrollTop=scroll;
+                    }
+                })
+            }
+
+            function enviar(){
+                const d=new Date();
+                const full_date = d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+                const full_time = d.toLocaleTimeString();
+                
+                if (input.value.length<140 && input.value.length>0){
+                    fetch('http://ubeje.xyz:3000/messages',{
+                        method:'POST',
+                        headers:{
+                            'Content-Type':'application/json'
+                        },
+                        body: JSON.stringify({
+                            sender: "sebas411",
+                            message:input.value,
+                            date:full_date+' '+full_time
+                        })
+                    }).then(()=>{
+                        actualizar();
+                    })
+                    input.value='';
+                }else if (input.value.length===0){
+                    alert('No puede mandar un mensaje vacio');
+                }else{
+                    alert('La cantidad maxima de caracteres permitidos son 140');
+                }
+                
+            }
+
+            actualizar();
+            setInterval(actualizar,10000);
+
+            button.addEventListener('click',enviar);
+            document.body.addEventListener('keypress',(e)=>{
+                if(e.key==='Enter'){
+                    enviar();
+                }
+            });
+        </script>
+    </body>
+</html>
